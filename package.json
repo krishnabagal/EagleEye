@@ -1,0 +1,25 @@
+{
+  "name": "aws-billing-dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-cost-explorer": "^3.1038.0",
+    "@aws-sdk/client-ec2": "^3.1038.0",
+    "@aws-sdk/client-elastic-load-balancing-v2": "^3.1039.0",
+    "@aws-sdk/client-rds": "3.1043.0",
+    "@aws-sdk/client-s3": "^3.1038.0",
+    "@aws-sdk/client-sts": "^3.1038.0",
+    "csv-parse": "^6.2.1",
+    "express": "^5.2.1",
+    "multer": "^2.1.1",
+    "pdf2json": "^4.0.3",
+    "pdfjs-dist": "^3.11.174"
+  }
+}
