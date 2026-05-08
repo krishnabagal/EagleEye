@@ -18,12 +18,17 @@ Real-time cost visibility, infrastructure inventory, and AI-powered saving recom
 [![IAM Role Auth](https://img.shields.io/badge/Auth-IAM%20Role-232F3E?style=flat-square&logo=amazonaws)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 
+
+![](images/Main-Dashboard.png)
+
 <br/>
 
 > **No API keys. No CSV uploads. No third-party SaaS.**  
 > EagleEye runs on your EC2 instance and uses the attached IAM Role to pull live data directly from AWS APIs.
 
 </div>
+
+<br/>
 
 ---
 
