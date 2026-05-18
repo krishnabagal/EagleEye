@@ -32,42 +32,42 @@ Real-time cost visibility, infrastructure inventory, and AI-powered saving recom
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [✨ Features](#-features)
-- [🏗️ Architecture](#️-architecture)
-- [📊 Dashboard Panels Explained](#-dashboard-panels-explained)
-- [🔐 IAM Setup — Step by Step](#-iam-setup--step-by-step)
-- [🚀 Installation & Deployment](#-installation--deployment)
-- [⚙️ Configuration](#️-configuration)
-- [📁 Project Structure](#-project-structure)
-- [🔌 API Reference](#-api-reference)
-- [💡 Cost Saving Recommendations Engine](#-cost-saving-recommendations-engine)
-- [🛡️ Security](#️-security)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
+- [Features](#-features)
+- [Architecture](#️-architecture)
+- [Dashboard Panels Explained](#-dashboard-panels-explained)
+- [IAM Setup — Step by Step](#-iam-setup--step-by-step)
+- [Installation & Deployment](#-installation--deployment)
+- [Configuration](#️-configuration)
+- [Project Structure](#-project-structure)
+- [API Reference](#-api-reference)
+- [Cost Saving Recommendations Engine](#-cost-saving-recommendations-engine)
+- [Security](#️-security)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Details |
 |---------|---------|
-| 🔐 **Zero-credential auth** | Uses EC2 Instance Metadata (IMDSv2) — no keys ever stored |
-| 📅 **Region / Year / Month selector** | All charts and inventory recalculate on any filter change |
-| 📊 **6 interactive charts** | Annual bar, doughnut, horizontal bar, 3-month grouped compare |
-| 💰 **Real-time cost data** | AWS Cost Explorer API — actual UnblendedCost amounts |
-| 🏗️ **17-card infrastructure inventory** | EC2, RDS, EBS, S3, VPC, Subnets, NAT, IGW, SGs, ALBs, Key Pairs |
-| 🗄️ **RDS visibility** | Instance count, running/stopped, engine breakdown, GP2 storage flag |
-| 💡 **22 smart recommendations** | Auto-generated from live data — High / Medium / Low priority |
-| 🔄 **15-min cache + manual refresh** | Avoids AWS API rate limits; ↻ Refresh button busts cache |
-| 🌍 **19 AWS regions** | Full region list in dropdown; infra inventory switches per region |
-| 🎨 **Dark-theme UI** | IBM Plex Mono + Syne fonts, grid texture, AWS orange accent system |
-| 🖱️ **Interactive pie legend** | Click any row to toggle slice visibility |
+| **Zero-credential auth** | Uses EC2 Instance Metadata (IMDSv2) — no keys ever stored |
+| **Region / Year / Month selector** | All charts and inventory recalculate on any filter change |
+| **6 interactive charts** | Annual bar, doughnut, horizontal bar, 3-month grouped compare |
+| **Real-time cost data** | AWS Cost Explorer API — actual UnblendedCost amounts |
+| **17-card infrastructure inventory** | EC2, RDS, EBS, S3, VPC, Subnets, NAT, IGW, SGs, ALBs, Key Pairs |
+| **RDS visibility** | Instance count, running/stopped, engine breakdown, GP2 storage flag |
+| **22 smart recommendations** | Auto-generated from live data — High / Medium / Low priority |
+| **15-min cache + manual refresh** | Avoids AWS API rate limits; ↻ Refresh button busts cache |
+| **19 AWS regions** | Full region list in dropdown; infra inventory switches per region |
+| **Dark-theme UI** | IBM Plex Mono + Syne fonts, grid texture, AWS orange accent system |
+| **Interactive pie legend** | Click any row to toggle slice visibility |
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -138,7 +138,7 @@ Browser: GET /api/billing?region=ap-south-1&year=2026&month=3
 
 ---
 
-## 📊 Dashboard Panels Explained
+## Dashboard Panels Explained
 
 ### Account Overview (6 metric cards)
 
@@ -159,7 +159,7 @@ Browser: GET /api/billing?region=ap-south-1&year=2026&month=3
 
 ---
 
-### 1. 📈 Monthly AWS Costs — Annual Trend Bar Chart
+### 1. Monthly AWS Costs — Annual Trend Bar Chart
 
 **What it shows:** Total AWS spend for every month of the selected year, Jan → Dec.
 
@@ -174,7 +174,7 @@ Browser: GET /api/billing?region=ap-south-1&year=2026&month=3
 
 ---
 
-### 2. 🍩 Service Distribution — Doughnut Chart
+### 2. Service Distribution — Doughnut Chart
 
 **What it shows:** Each AWS service as a % of the selected month's total bill.
 
@@ -189,7 +189,7 @@ Browser: GET /api/billing?region=ap-south-1&year=2026&month=3
 
 ---
 
-### 3. 📊 Top 5 Services — Horizontal Bar Chart
+### 3. Top 5 Services — Horizontal Bar Chart
 
 **What it shows:** Your 5 most expensive services ranked, for the selected period.
 
@@ -203,7 +203,7 @@ Browser: GET /api/billing?region=ap-south-1&year=2026&month=3
 
 ---
 
-### 4. 📉 Last 3 Months — Grouped Bar Chart
+### 4. Last 3 Months — Grouped Bar Chart
 
 **What it shows:** Side-by-side cost comparison of top 5 services across 3 consecutive months.
 
@@ -217,7 +217,7 @@ Browser: GET /api/billing?region=ap-south-1&year=2026&month=3
 
 ---
 
-### 5. 📋 Month-over-Month Cost Changes Table
+### 5. Month-over-Month Cost Changes Table
 
 **What it shows:** Detailed cost breakdown of top 5 services with % change calculations.
 
@@ -239,7 +239,7 @@ Browser: GET /api/billing?region=ap-south-1&year=2026&month=3
 
 ---
 
-### 6. 🏗️ Infrastructure Inventory (17 Cards)
+### 6. Infrastructure Inventory (17 Cards)
 
 Live resource counts for the selected region, fetched in parallel:
 
@@ -267,7 +267,7 @@ Live resource counts for the selected region, fetched in parallel:
 
 ---
 
-### 7. 💡 Cost Saving Recommendations
+### 7. Cost Saving Recommendations
 
 ![](images/Cost_Saving-Recommendations.png)
 
@@ -275,7 +275,7 @@ See [Recommendations Engine](#-cost-saving-recommendations-engine) for full deta
 
 ---
 
-## 🔐 IAM Setup — Step by Step
+## IAM Setup — Step by Step
 
 EagleEye only calls **read-only** AWS APIs. It never creates, modifies, or deletes resources.
 
@@ -389,7 +389,7 @@ Takes up to 24 hours for data to populate on first enable.
 
 ---
 
-## 🚀 Installation & Deployment
+## Installation & Deployment
 
 ### Prerequisites
 
@@ -549,7 +549,7 @@ sudo systemctl status eagleeye
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -573,7 +573,7 @@ const TTL = 15 * 60 * 1000;   // change to e.g. 5 * 60 * 1000 for 5 minutes
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 eagleeye/
@@ -620,7 +620,7 @@ Routes   →  GET /api/billing        main data endpoint
 
 ---
 
-## 🔌 API Reference
+##  API Reference
 
 ### `GET /api/billing`
 
@@ -710,7 +710,7 @@ Returns same shape as `/api/billing` with a fresh `fetchedAt` timestamp.
 
 ---
 
-## 💡 Cost Saving Recommendations Engine
+## Cost Saving Recommendations Engine
 
 EagleEye automatically generates up to **22 recommendations** by comparing live infrastructure data against cost optimization best practices. They are sorted: HIGH priority first, then MEDIUM, then LOW; within each group sorted by estimated monthly saving descending.
 
@@ -747,7 +747,7 @@ All estimates are conservative, based on AWS public pricing (ap-south-1 / us-eas
 
 ---
 
-## 🛡️ Security
+## Security
 
 ### What EagleEye never does
 
@@ -785,7 +785,7 @@ aws cloudtrail create-trail \
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 ```bash
 git clone https://github.com/krishnabagal/eagleeye.git
@@ -814,7 +814,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
 
 ---
 
-## 📄 License
+## License
 
 MIT © 2026 EagleEye Contributors — see [LICENSE](LICENSE) for full text.
 
@@ -836,7 +836,5 @@ MIT © 2026 EagleEye Contributors — see [LICENSE](LICENSE) for full text.
 **Built with ❤️ for the AWS community**
 
 ⭐ Star this repo if EagleEye helped you cut your AWS bill!
-
-[🐛 Report Bug](https://github.com/your-username/eagleeye/issues) · [💡 Request Feature](https://github.com/your-username/eagleeye/issues) · [💬 Discussions](https://github.com/your-username/eagleeye/discussions)
 
 </div>
