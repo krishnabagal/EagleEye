@@ -34,18 +34,18 @@ Real-time cost visibility, infrastructure inventory, and AI-powered saving recom
 
 ## Table of Contents
 
-- [Features](#-features)
-- [Architecture](#️-architecture)
-- [Dashboard Panels Explained](#-dashboard-panels-explained)
-- [IAM Setup — Step by Step](#-iam-setup--step-by-step)
-- [Installation & Deployment](#-installation--deployment)
-- [Configuration](#️-configuration)
-- [Project Structure](#-project-structure)
-- [API Reference](#-api-reference)
-- [Cost Saving Recommendations Engine](#-cost-saving-recommendations-engine)
-- [Security](#️-security)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Dashboard Panels Explained](#dashboard-panels-explained)
+- [IAM Setup — Step by Step](#iam-setup--step-by-step)
+- [Installation & Deployment](#installation--deployment)
+- [Configuration](#configuration)
+- [Project Structure](#project-structure)
+- [API Reference](#api-reference)
+- [Cost Saving Recommendations Engine](#cost-saving-recommendations-engine)
+- [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
