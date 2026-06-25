@@ -606,6 +606,41 @@ app.get('/api/refresh', async (req, res) => {
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── DAILY COST ROUTE — day-by-day breakdown for one service in a month ──
+app.get('/api/service-daily', async (req, res) => {
+  const region  = req.query.region || 'us-east-1';
+  const year    = parseInt(req.query.year)  || new Date().getFullYear();
+  const month   = req.query.month !== undefined ? parseInt(req.query.month) : new Date().getMonth();
+  const service = req.query.service || '';
+  if (!service) return res.status(400).json({ error: 'service param required' });
+
+  const { ce } = getClients(region);
+  const now     = new Date();
+  const start   = new Date(year, month, 1);
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+  const end     = isCurrentMonth ? new Date(year, month, now.getDate() + 1) : new Date(year, month + 1, 1);
+  const fmt     = d => d.toISOString().split('T')[0];
+
+  try {
+    const res2 = await ce.send(new GetCostAndUsageCommand({
+      TimePeriod:  { Start: fmt(start), End: fmt(end) },
+      Granularity: 'DAILY',
+      Metrics:     ['UnblendedCost'],
+      Filter:      { Dimensions: { Key: 'SERVICE', Values: [service] } },
+    }));
+
+    const days = (res2.ResultsByTime || []).map(r => ({
+      date:   r.TimePeriod.Start,   // YYYY-MM-DD
+      cost:   parseFloat(parseFloat(r.Total.UnblendedCost.Amount).toFixed(4)),
+    }));
+
+    res.json({ service, year, month, days });
+  } catch (e) {
+    console.error('daily cost error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.listen(PORT, HOST, () => {
   console.log(`\n✅  EagleEye — AWS Billing Intelligence → http://${HOST}:${PORT}`);
   console.log(`    Auth: IAM Role (EC2 Instance Metadata)\n`);
