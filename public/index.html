@@ -146,6 +146,12 @@ table.tb tr:hover td{background:rgba(255,153,0,.025)}
 .rec-total-val .big{font-size:32px;font-weight:800;color:var(--g);line-height:1}
 .rec-total-val .sub{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:3px}
 
+/* DAILY SERVICE CHART */
+.daily-stat{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:130px}
+.daily-stat .dl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:4px}
+.daily-stat .dv{font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:#60a5fa}
+.daily-stat .ds{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+
 /* LOADER */
 #pl{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;transition:opacity .5s}
 #pl.hidden{opacity:0;pointer-events:none}
@@ -277,6 +283,28 @@ table.tb tr:hover td{background:rgba(255,153,0,.025)}
       <h3><span class="dot"></span> Top 5 Services <span class="sl" id="t5Lbl">—</span></h3>
       <div style="position:relative;height:270px"><canvas id="t5Chart"></canvas></div>
     </div>
+  </div>
+
+  <div class="st">Daily Service Cost Breakdown</div>
+  <div class="cc" id="dailySection">
+    <h3>
+      <span class="dot" style="background:#3b82f6;box-shadow:0 0 7px #3b82f6"></span>
+      Daily Cost — Selected Service
+      <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+        <span class="cl" style="font-size:9px">Service</span>
+        <select class="cs" id="selService" onchange="onServiceChange()" style="min-width:200px">
+          <option value="">— Select a service —</option>
+        </select>
+        <span class="sl" id="dailyLbl" style="margin-left:0">—</span>
+      </div>
+    </h3>
+    <div id="dailyChartWrap" style="position:relative;height:255px">
+      <canvas id="dailyChart"></canvas>
+    </div>
+    <div id="dailyEmpty" style="display:none;height:160px;align-items:center;justify-content:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px">
+      ← Select a service from the dropdown to see daily costs
+    </div>
+    <div id="dailySummary" style="display:none;margin-top:14px;gap:16px;flex-wrap:wrap"></div>
   </div>
 
   <div class="st">3-Month Service Comparison</div>
@@ -663,6 +691,185 @@ function renderRecs(recs) {
     </div>`).join('');
 }
 
+// ── DAILY SERVICE CHART ──
+let dailyServiceList = [];
+
+function populateServiceDropdown(services) {
+  dailyServiceList = services;
+  const sel2 = document.getElementById('selService');
+  const prev = sel2.value;   // remember what user had selected
+
+  sel2.innerHTML = '<option value="">— Select a service —</option>';
+  services.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.name;
+    o.textContent = s.name.replace('Amazon ','').replace('AWS ','') + '  ·  ' + fmt(s.cost);
+    sel2.appendChild(o);
+  });
+
+  // Priority: 1) keep previous selection  2) auto-select highest-cost service
+  if (prev && services.find(s => s.name === prev)) {
+    sel2.value = prev;
+  } else if (services.length > 0) {
+    sel2.value = services[0].name;   // services are already sorted high→low
+  }
+}
+
+async function onServiceChange() {
+  const svcName = document.getElementById('selService').value;
+  if (!svcName) {
+    dc('daily');
+    document.getElementById('dailyChartWrap').style.display  = 'none';
+    document.getElementById('dailyEmpty').style.display      = 'flex';
+    document.getElementById('dailySummary').style.display    = 'none';
+    document.getElementById('dailyLbl').textContent = '—';
+    return;
+  }
+  // Hide the placeholder, show chart area
+  document.getElementById('dailyEmpty').style.display = 'none';
+  await loadDailyChart(svcName);
+}
+
+async function loadDailyChart(svcName) {
+  const wrap    = document.getElementById('dailyChartWrap');
+  const empty   = document.getElementById('dailyEmpty');
+  const summary = document.getElementById('dailySummary');
+  const lbl     = document.getElementById('dailyLbl');
+
+  // Always hide placeholder, show chart container
+  empty.style.display   = 'none';
+  summary.style.display = 'none';
+  wrap.style.display    = 'block';
+  wrap.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:255px;gap:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px"><div style="width:16px;height:16px;border:2px solid var(--border);border-top-color:#3b82f6;border-radius:50%;animation:spin .7s linear infinite"></div>Loading daily data…</div>`;
+
+  try {
+    const url = `/api/service-daily?region=${sel.region}&year=${sel.year}&month=${sel.month}&service=${encodeURIComponent(svcName)}`;
+    const r   = await fetch(url);
+    const d   = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    // Restore canvas (innerHTML wipes it during loading spinner)
+    wrap.innerHTML = '<canvas id="dailyChart"></canvas>';
+    wrap.style.height = '255px';
+
+    renderDailyChart(svcName, d.days);
+    renderDailySummary(svcName, d.days);
+
+    const shortName = svcName.replace('Amazon ','').replace('AWS ','');
+    const MNS2 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    lbl.textContent = `${shortName} · ${MNS2[sel.month]} ${sel.year}`;
+
+  } catch(e) {
+    wrap.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:255px;color:var(--accent4);font-family:'IBM Plex Mono',monospace;font-size:12px">⚠ ${e.message}</div>`;
+    lbl.textContent = 'Error';
+  }
+}
+
+function renderDailyChart(svcName, days) {
+  dc('daily');
+  if (!days || days.length === 0) return;
+
+  const ctx   = document.getElementById('dailyChart').getContext('2d');
+  const labels = days.map(d => {
+    const date = new Date(d.date + 'T00:00:00');
+    return date.getDate().toString().padStart(2,'0');  // day number only e.g. "01"
+  });
+  const data  = days.map(d => d.cost);
+  const total = data.reduce((s,v) => s+v, 0);
+
+  // gradient blue fill
+  const grad = ctx.createLinearGradient(0, 0, 0, 255);
+  grad.addColorStop(0, 'rgba(59,130,246,0.80)');
+  grad.addColorStop(1, 'rgba(59,130,246,0.15)');
+
+  charts.daily = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets:[{
+        label: svcName.replace('Amazon ','').replace('AWS ',''),
+        data,
+        backgroundColor: grad,
+        borderColor: '#3b82f6',
+        borderWidth: 1,
+        borderRadius: 3,
+        borderSkipped: false,
+        barPercentage: 0.85,
+        categoryPercentage: 0.9,
+      }]
+    },
+    options:{
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins:{
+        legend:{ display: false },
+        tooltip:{
+          backgroundColor: 'rgba(17,24,39,0.95)',
+          borderColor: 'rgba(59,130,246,0.4)',
+          borderWidth: 1,
+          titleColor: '#93c5fd',
+          bodyColor: '#60a5fa',
+          padding: 10,
+          callbacks:{
+            title: items => {
+              const day = items[0].label;
+              const MNS2 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              return `${MNS2[sel.month]} ${day}, ${sel.year}`;
+            },
+            label: c => `  Cost: ${fmt(c.raw)}`,
+            afterLabel: c => `  MTD share: ${total > 0 ? (c.raw/total*100).toFixed(1) : 0}%`,
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{ color:'rgba(31,45,71,.65)' },
+          ticks:{
+            color:'#64748b',
+            font:{ family:'IBM Plex Mono', size:10 },
+            maxTicksLimit: 31,
+          },
+          title:{ display:true, text:`Day of ${['January','February','March','April','May','June','July','August','September','October','November','December'][sel.month]}`, color:'#475569', font:{ family:'IBM Plex Mono', size:10 } }
+        },
+        y:{
+          grid:{ color:'rgba(31,45,71,.65)' },
+          ticks:{
+            color:'#64748b',
+            font:{ family:'IBM Plex Mono', size:10 },
+            callback: v => '$'+v.toLocaleString()
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderDailySummary(svcName, days) {
+  if (!days || days.length === 0) return;
+  const costs   = days.map(d => d.cost).filter(c => c > 0);
+  const total   = costs.reduce((s,v) => s+v, 0);
+  const avg     = costs.length ? total / costs.length : 0;
+  const peak    = Math.max(...costs);
+  const peakDay = days.find(d => d.cost === peak);
+  const peakDate = peakDay ? new Date(peakDay.date + 'T00:00:00').getDate() : '—';
+  const zeroDays = days.length - costs.length;
+
+  const summary = document.getElementById('dailySummary');
+  summary.style.display = 'flex';
+  summary.innerHTML = [
+    { l:'MTD Total',   v: fmt(total),              s:`${days.length} days tracked` },
+    { l:'Daily Avg',   v: fmt(avg),                s:'Cost-active days only' },
+    { l:'Peak Day',    v: fmt(peak),               s:`Day ${peakDate} of month` },
+    { l:'Zero-cost Days', v: zeroDays.toString(),  s:'No usage billed' },
+    { l:'Projected Month', v: avg > 0 ? fmt(avg * new Date(sel.year, sel.month+1, 0).getDate()) : '—', s:'If avg holds to EOM' },
+  ].map(s => `
+    <div class="daily-stat">
+      <div class="dl">${s.l}</div>
+      <div class="dv">${s.v}</div>
+      <div class="ds">${s.s}</div>
+    </div>`).join('');
+}
+
 // ── RENDER ALL ──
 function render(d) {
   document.getElementById('hAcct').textContent  = d.accountId;
@@ -676,6 +883,18 @@ function render(d) {
   if (d.monthlyData?.length) renderYr(d.monthlyData, d.billingYear, d.billingMonth);
   renderPie(d.services, d.dateRange);
   renderT5(d.services);
+  populateServiceDropdown(d.services);
+  // Always load the daily chart for whichever service is now selected (top service by default)
+  const curSvc = document.getElementById('selService').value;
+  if (curSvc) {
+    document.getElementById('dailyEmpty').style.display = 'none';
+    loadDailyChart(curSvc);
+  } else {
+    dc('daily');
+    document.getElementById('dailyChartWrap').style.display = 'none';
+    document.getElementById('dailyEmpty').style.display     = 'flex';
+    document.getElementById('dailySummary').style.display   = 'none';
+  }
   renderCmp(d.services, d.lastMonthServices||[], d.twoMonthsAgoServices||[], d);
   renderChg(d.services, d.lastMonthServices||[], d.twoMonthsAgoServices||[]);
   renderInfra(d.infraStats);
